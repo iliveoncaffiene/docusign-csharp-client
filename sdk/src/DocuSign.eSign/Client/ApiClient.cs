@@ -846,15 +846,24 @@ namespace DocuSign.eSign.Client
 
             object result = pemReader.ReadObject();
 
-            if (result is AsymmetricCipherKeyPair)
+            var cspParameters = new CspParameters
+                                {
+                                    Flags = CspProviderFlags.UseMachineKeyStore,
+                                };
+
+            var provider = new RSACryptoServiceProvider(cspParameters);
+
+            if (result is AsymmetricCipherKeyPair keyPair)
             {
-                AsymmetricCipherKeyPair keyPair = (AsymmetricCipherKeyPair)result;
-                return DotNetUtilities.ToRSA((RsaPrivateCrtKeyParameters)keyPair.Private);
+                var rsaParams = DotNetUtilities.ToRSAParameters((RsaPrivateCrtKeyParameters)keyPair.Private);
+                provider.ImportParameters(rsaParams);
+                return provider;
             }
-            else if (result is RsaKeyParameters)
+            else if (result is RsaKeyParameters keyParameters)
             {
-                RsaKeyParameters keyParameters = (RsaKeyParameters)result;
-                return DotNetUtilities.ToRSA(keyParameters);
+                var rsaParams = DotNetUtilities.ToRSAParameters(keyParameters);
+                provider.ImportParameters(rsaParams);
+                return provider;
             }
 
             throw new Exception("Unexpected PEM type");

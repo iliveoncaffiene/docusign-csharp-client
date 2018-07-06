@@ -53,6 +53,8 @@ build/
 *.log
 *.scc
 
+.vs/
+
 # OS generated files #
 .DS_Store*
 ehthumbs.db
